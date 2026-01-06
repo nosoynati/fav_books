@@ -1,16 +1,34 @@
 ---
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
 
+const books = await getCollection("books");
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Libros">
+  <main>
+    <h1 class="text-center text-7xl font-extrabold">Mis libros favoritos</h1>
+
+    <section aria-label="Libros recomendados favoritos">
+      <div class="max-w-2xl">
+        <div class="grid gap-6 md:grid-cols-2">
+          {
+            books.map((book) => {
+              const { slug, data } = book;
+              const { title, author, img, buy } = data;
+
+              return (
+                <article class="w-fit">
+                  <h2 class="text-2xl">
+                    {title}: {author}
+                  </h2>
+                  <img src={`/img/${img}`} alt={title} class="w-full b-rounded" />
+                </article>
+              );
+            })
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
