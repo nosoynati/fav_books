@@ -7,22 +7,28 @@ const books = await getCollection("books");
 
 <Layout title="Libros">
   <main>
-    <h1 class="text-center text-7xl font-extrabold">Mis libros favoritos</h1>
+    <h1 class="text-center text-7xl font-extrabold mb-4">Mis libros favoritos</h1>
 
     <section aria-label="Libros recomendados favoritos">
-      <div class="max-w-2xl">
-        <div class="grid gap-6 md:grid-cols-2">
+      <div class="max-w-3xl">
+        <div class="grid gap-8 md:grid-cols-2 2xl:grid-cols-3">
           {
             books.map((book) => {
               const { slug, data } = book;
-              const { title, author, img, buy } = data;
+              const { title, author, img, buy, description } = data;
 
               return (
-                <article class="w-fit">
-                  <h2 class="text-2xl">
+                <article class="flex flex-col">
+                  <a href={`/libro/${slug}`} class="mb-2 xl:mb-0 transition hover:scale-110">
+                    <img src={`/img/${img}`} alt={title} class="w-full rounded" />
+                  </a>
+                  <div class="flex flex-col justify-center">
+                    <h2 class="mb-2 text-2xl font-bold leading-tight text-white">
                     {title}: {author}
                   </h2>
-                  <img src={`/img/${img}`} alt={title} class="w-full b-rounded" />
+                  <p class="text-amber-100 text-pretty italic">{description}</p>
+                  </div>
+                  
                 </article>
               );
             })

@@ -3,7 +3,7 @@ title: Nuestra parte de la noche
 author: Mariana Enriquez
 img: 61111034.jpg
 publisher: Anagrama
-description: Lorem ipsum
+description: A young father and son set out on a road trip, devastated by the death of the wife and mother they both loved. United in grief, the pair travel to her ancestral home, where they must confront a terrifying legacy.
 buy:
   argnetina: https://www.goodreads.com/book/show/48758708-nuestra-parte-de-noche?ref=nav_sb_ss_1_13
   usa: https://www.goodreads.com/book/show/61111034-our-share-of-night

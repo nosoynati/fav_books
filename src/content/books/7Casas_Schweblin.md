@@ -3,7 +3,7 @@ title: Siete casas vacías
 author: Samantha Schweblin
 img: 60206505.jpg
 publisher: Páginas de Espuma
-description: Lorem ipsum
+description: Las casas son siete, y están vacías. La narradora, según Rodrigo Fresán, es "una científica cuerda contemplando locos, o gente que está pensando seriamente en volverse loca". Y la cordura, como siempre, es superficial.
 buy:
   argnetina: https://www.goodreads.com/book/show/25624832-siete-casas-vac-as
   usa: https://www.goodreads.com/book/show/25624832-siete-casas-vac-as
