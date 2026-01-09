@@ -1,0 +1,11 @@
+---
+// se puede crear un script dentro de una pagina
+import { SCORE_API_ENDPOINT } from "astro:env/server";
+
+const res = await fetch(SCORE_API_ENDPOINT);
+const scoreValue = await res.text()
+
+---
+<p id="score" class="score">
+  ⭐ Puntuación: {scoreValue.trim()}/5
+</p>

@@ -1,7 +1,9 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
-
+import { SHOW_BUY_BUTTON } from "astro:env/server";
+import AmazonButton from "../../components/AmazonButton.astro";
+import BookScore from "../../components/BookScore.astro";
 export async function getStaticPaths() {
   const books = await getCollection("books");
 
@@ -13,25 +15,58 @@ export async function getStaticPaths() {
 const { book } = Astro.props;
 const { data, slug } = book;
 const { title, author, img, description, buy } = data;
-
-const { Content } = await render(book); 
+const { Content } = await render(book);
 ---
 
 <Layout title={title}>
   <div class="flex flex-wrap gap-12">
     <aside class="flex flex-col flex-nowrap items-center gap-4">
-      <img transition:name={`img-${slug}`} src={`/img/${img}`} alt={title} class="rounded w-full h-auto max-w-60" />
+      <img
+        transition:name={`img-${slug}`}
+        src={`/img/${img}`}
+        alt={title}
+        class="rounded w-full h-auto max-w-60"
+      />
+      {
+        SHOW_BUY_BUTTON && (
+          <a
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-balance inline-flex justify-items-center gap-2 py-2 px-4 rounded
+             text-black bg-yellow-400 border-yellow-500 hover:bg-yellow-500">
+            Comprar en amazon
+            <AmazonButton />
+          </a>
+          <BookScore id={slug} />          
+          // <p id="score" class="score"></p>
+        )
+      }
     </aside>
-    
 
     <main class="flex flex-col max-w-md">
-      <h2 transition:name={`title-${slug}`} class="mb-2 text-2xl font-bold leading-tight text-white">
+      <h2
+        transition:name={`title-${slug}`}
+        class="mb-2 text-2xl font-bold leading-tight text-white">
         {title}: {author}
       </h2>
       <div class="prose dark:prose-invert prose-sm">
         <Content />
       </div>
-      
     </main>
   </div>
 </Layout>
+
+<!-- <script>
+  // se puede crear un script dentro de una pagina
+  import { SCORE_API_ENDPOINT } from "astro:env/client";
+
+  const scoreElement = document.querySelector("#score");
+
+
+  fetch(SCORE_API_ENDPOINT)
+    .then(res => res.text())  // -> la api devuelve un numeros, entonces no usamos .json()
+    .then(scoreValue => {
+      if(scoreElement) scoreElement.innerHTML = `⭐Puntuación: ${scoreValue.trim()}`
+    })
+</script> -->

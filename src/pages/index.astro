@@ -20,7 +20,7 @@ const books = await getCollection("books");
               return (
                 <article class="grid grid-cols-2 gap-4">
                   <a href={`/libro/${slug}`} class="mb-2 xl:mb-0 transition hover:scale-110">
-                    <img src={`/img/${img}`} alt={title} class="mr-5 max-w-full rounded-md" />
+                    <img src={`/img/${img}`} alt={title} class="mr-5 w-full max-w-60 rounded-md" />
                   </a>
                   <div class="flex flex-col align-top">
                     <h2 class="mb-2 text-2xl font-bold leading-tight text-white">

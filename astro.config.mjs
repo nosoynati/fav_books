@@ -7,7 +7,7 @@ export default defineConfig({
   // ...
   env: {
     schema: {
-      SHOW_BUY_BUTTON: envField.boolean({ context: 'server', access: 'public'}),
+      SHOW_BUY_BUTTON: envField.boolean({ default: true, context: 'server', access: 'public'}),
       SCORE_API_ENDPOINT: envField.string({ context: 'server', access: 'public'})
     }
   }

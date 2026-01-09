@@ -12,8 +12,7 @@ a {
   color: var(--accent-dark);
 }
 body {
-  padding: 5rem;
-  @apply grid place-content-center;
+  @apply grid place-content-between min-h-screen justify-center p-20;
 }
 body > div {
   @apply container;
