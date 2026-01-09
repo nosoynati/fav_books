@@ -4,8 +4,8 @@ import { SCORE_API_ENDPOINT } from "astro:env/server";
 
 const res = await fetch(SCORE_API_ENDPOINT);
 const scoreValue = await res.text()
-
+export const prerender = false;
 ---
-<p id="score" class="score">
+<p id="score" class="text-xs">
   ⭐ Puntuación: {scoreValue.trim()}/5
 </p>

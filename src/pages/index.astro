@@ -3,6 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import { getCollection } from "astro:content";
 
 const books = await getCollection("books");
+
+export const prerender = true; 
 ---
 
 <Layout title="Libros">
@@ -11,7 +13,7 @@ const books = await getCollection("books");
 
     <section aria-label="Libros recomendados favoritos">
       <div class="px-4 mt-6 mx-auto max-w-screen-xl">
-        <div class="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2">
           {
             books.map((book) => {
               const { slug, data } = book;
@@ -20,7 +22,7 @@ const books = await getCollection("books");
               return (
                 <article class="grid grid-cols-2 gap-4">
                   <a href={`/libro/${slug}`} class="mb-2 xl:mb-0 transition hover:scale-110">
-                    <img src={`/img/${img}`} alt={title} class="mr-5 w-full max-w-60 rounded-md" />
+                    <img src={`/img/${img}`} alt={title} class="w-full max-w-72 rounded-md" />
                   </a>
                   <div class="flex flex-col align-top">
                     <h2 class="mb-2 text-2xl font-bold leading-tight text-white">
