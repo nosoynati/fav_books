@@ -1,6 +1,7 @@
 ---
 title: El núcleo del disturbio
 author: Samantha Schweblin
+id: 6399462
 img: 6399462.jpg
 publisher: Destino
 description: Descarnados, violentos, esperanzados, onirícos, desesperados, absurdos hasta la comicidad nerviosa del involuntario testigo de una verdad feroz, los cuentos de Samanta Schweblin perturban poéticamente la comprensión del mundo

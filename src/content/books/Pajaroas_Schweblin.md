@@ -1,6 +1,7 @@
 ---
 title: Pájaros en la boca
 author: Samantha Schweblin
+id: 39872813
 img: 39872813.jpg
 publisher: Literatura Random House
 description: Unearthly and unexpected, the stories in Mouthful of Birds burrow their way into your psyche and don't let go. Samanta Schweblin haunts and mesmerizes in this extraordinary, masterful collection.
