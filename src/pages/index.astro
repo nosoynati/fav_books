@@ -1,10 +1,49 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getCollection } from "astro:content";
+// import { getCollection } from "astro:content";
+import { HARDCOVER_API_KEY } from "astro:env/server";
+// const books = await getCollection("books");
 
-const books = await getCollection("books");
+export const prerender = true;
 
-export const prerender = true; 
+const query = `
+  query Test {
+    me {
+      user_books(limit: 10, order_by: {url: asc, date_added: desc}) {
+        book_id
+        book {
+          title
+          book_category_id
+          subtitle
+          description
+          image {
+            height
+            id
+            width
+            url
+          }
+          rating
+          ratings_count
+          slug
+          id
+        }
+      }
+    }
+  }
+`;
+
+const response = await fetch("https://api.hardcover.app/v1/graphql", {
+  method: "POST",
+  headers: {
+    "content-type": "application/json",
+    authorization: HARDCOVER_API_KEY,
+  },
+  body: JSON.stringify({ query }),
+ 
+})
+const { data } = await response.json();
+const books = data.me[0]['user_books']
+ 
 ---
 
 <Layout title="Libros">
@@ -15,23 +54,24 @@ export const prerender = true;
       <div class="px-4 mt-6 mx-auto max-w-screen-xl">
         <div class="grid gap-6 md:grid-cols-2">
           {
-            books?.map((book) => {
-              const { id, data } = book;
-              const { title, author, img, description } = data;
+            books.map((user_book) => {
+              const { book_id, book } = user_book
+              const { id, slug, title, author, image, description } = book ;
 
               return (
                 <article class="grid grid-cols-2 gap-4">
-                  <a href={`/libro/${id}`} class="mb-2 xl:mb-0 transition hover:scale-110">
-                    <img src={`/img/${img}`} alt={title} class="w-full max-w-72 rounded-md" />
+                  <a href={`/libro/${book_id}`} class="mb-2 xl:mb-0 transition hover:scale-110">
+                    <img src={image?.url} alt={title} class="w-full max-w-72 rounded-md" />
                   </a>
                   <div class="flex flex-col align-top">
                     <h2 class="mb-2 text-2xl font-bold leading-tight text-white">
-                    {title}: {author}
-                  </h2>
-                  <p class="text-amber-100 text-wrap line-clamp-3 italic">{description}</p>
-                  <a href={`/libro/${id}`} aria-details="ver más" >ver más...</a>
+                      {title}: {author}
+                    </h2>
+                    <p class="text-amber-100 text-wrap line-clamp-3 italic">{description}</p>
+                    <a href={slug} aria-details="ver más">
+                      ver más...
+                    </a>
                   </div>
-                  
                 </article>
               );
             })
