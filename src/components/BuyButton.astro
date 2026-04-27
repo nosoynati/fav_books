@@ -1,13 +1,11 @@
 ---
 import AmazonButton from "./AmazonButton.astro";
-const SPAIN = "ES";
 const ARG = 'AR';
 const countryCurrent = Astro.request.headers.get("X-Vercel-IP-Country")
-const country = Astro.request.headers.get("X-Vercel-IP-Country") ?? "ES";
-console.log(countryCurrent);
+const country = Astro.request.headers.get("X-Vercel-IP-Country") ?? "AR";
 
-const storeCountry = country === SPAIN ? "spain" : "usa";
-const countryName = country === SPAIN ? "España" : "Estados Unidos";
+const storeCountry = country === ARG ? "argentina" : "usa";
+const countryName = country === ARG ? "Argentina" : "Estados Unidos";
 
 const { buy } = Astro.props;
 const url = buy[storeCountry];
