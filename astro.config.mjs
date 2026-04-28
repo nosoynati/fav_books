@@ -1,4 +1,4 @@
-import { defineConfig, envField } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 
 import vercel from '@astrojs/vercel';
@@ -17,6 +17,17 @@ export default defineConfig({
       SCORE_API_ENDPOINT: envField.string({ context: 'server', access: 'public'})
     }
   },
-
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "IntelOne",
+    cssVariable: "--font-intel-one",
+    options: {
+      variants: [{
+        src: ["./src/assets/fonts/IntelOneMono_wght.ttf"],
+        weight: "normal",
+        style: "normal"
+      }]
+    }
+  }],
   adapter: vercel()
 });

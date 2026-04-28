@@ -22,7 +22,7 @@ const { id, slug, title, rating, editions, subtitle, image, description } = book
     <aside class="flex flex-col flex-nowrap items-center gap-4">
       <img
         transition:name={`img-${id}`}
-        src={`${image.url || "https://placehold.co/200x200.png"} `}
+        src={`${image?.url || "https://placehold.co/200x200.png"} `}
         alt={title}
         class="rounded w-full h-auto max-w-[175px] min-w-[126px]"
       />

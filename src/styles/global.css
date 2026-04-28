@@ -4,7 +4,7 @@
   --accent-dark: 49, 10, 101;
 }
 html {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-intel-one), system-ui, sans-serif;
   background-color: black;
   color: white;
 }
