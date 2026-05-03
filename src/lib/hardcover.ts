@@ -1,5 +1,18 @@
 import { HARDCOVER_API_KEY } from "astro:env/server";
 
+// ─── Queries ──────────────────────────────────────────────────────────────────
+//
+// Two separate GraphQL queries are used:
+//   1. GET_USER_BOOK_IDS_QUERY  — fetches the current user's book list (IDs + status)
+//   2. BOOKS_WITH_AUTHORS_QUERY — fetches full book data + authors for a given set of IDs
+//
+// They are split because the Hardcover API exposes authors through the
+// `contributions` table, not directly on `user_books`. We first get the IDs
+// we care about, then ask contributions to return only those books.
+
+// Fetches the authenticated user's book list.
+// $where is optional — omitting it returns all books regardless of status.
+// To add a new field to every book (e.g. page count), add it here.
 export const GET_USER_BOOK_IDS_QUERY = `
   query GetUserBookIds($where: user_books_bool_exp) {
     me {
@@ -12,6 +25,10 @@ export const GET_USER_BOOK_IDS_QUERY = `
   }
 `;
 
+// Fetches full book details + author names for a list of book IDs.
+// $ids comes from GET_USER_BOOK_IDS_QUERY — this keeps results scoped to
+// the user's own library.
+// To expose a new book field on the detail page, add it inside `book { }`.
 export const BOOKS_WITH_AUTHORS_QUERY = `
   query BooksWithAuthors($ids: [Int!]!) {
     contributions(where: {book: {id: {_in: $ids}}}) {
@@ -38,21 +55,32 @@ export const BOOKS_WITH_AUTHORS_QUERY = `
   }
 `;
 
+// ─── Filter types ─────────────────────────────────────────────────────────────
+//
+// BookFilter controls which subset of the user's books to show.
+// To add a new tab, add the key here and a WHERE_CLAUSES entry below.
 export type BookFilter = 'all' | 'read' | 'want-to-read' | 'favorites';
 
+// Maps each filter to a Hasura-style GraphQL where clause.
+// Filters not listed here (e.g. 'all', 'favorites') get no where clause → return everything.
 const WHERE_CLAUSES: Partial<Record<BookFilter, object>> = {
-  'read':        { last_read_date: { _is_null: false } },
-  'want-to-read': { last_read_date: { _is_null: true } },
+  'read':         { last_read_date: { _is_null: false } }, // has a read date → read
+  'want-to-read': { last_read_date: { _is_null: true  } }, // no read date → unread
 };
 
+// ─── Main fetch function ──────────────────────────────────────────────────────
+
 export async function fetchUserBooks(
-  limit: number = 12,
-  offset: number = 0,
+  limit: number = 12,   // items per page
+  offset: number = 0,   // items to skip (for pagination)
   filter: BookFilter = 'all'
 ) {
   try {
+    // Look up whether this filter has a where clause.
+    // If not (e.g. 'all'), we send no `where` variable → API returns all books.
     const where = WHERE_CLAUSES[filter];
 
+    // ── Step 1: get the user's book IDs and read status ──────────────────────
     const idsResponse = await fetch("https://api.hardcover.app/v1/graphql", {
       method: "POST",
       headers: {
@@ -70,17 +98,25 @@ export async function fetchUserBooks(
       throw new Error(`GraphQL error: ${idsJson.errors[0].message}`);
     }
 
+    // me[0] is the authenticated user (the API returns an array)
     const userBooksRaw: Array<{ book_id: number; last_read_date: string | null }> =
       idsJson.data?.me?.[0]?.user_books ?? [];
 
     if (!userBooksRaw.length) return { books: [], total: 0 };
 
+    // Extract just the IDs to pass to the next query
     const userBookIds = userBooksRaw.map((b) => b.book_id);
+
+    // Build a lookup: book_id → "read" | "want to read"
+    // Used to attach a human-readable status to each book later.
     const statusByBookId = new Map<number, string>();
     for (const ub of userBooksRaw) {
       statusByBookId.set(ub.book_id, ub.last_read_date ? 'read' : 'want to read');
     }
 
+    // ── Step 2: fetch books with authors from contributions ──────────────────
+    // contributions returns one row per (book, author) pair, so a book with
+    // two authors appears twice. We group them in the next step.
     const booksResponse = await fetch("https://api.hardcover.app/v1/graphql", {
       method: "POST",
       headers: {
@@ -103,6 +139,10 @@ export async function fetchUserBooks(
       book: any;
     }> = booksJson.data?.contributions ?? [];
 
+    // ── Step 3: group contributions by book, collecting authors ──────────────
+    // bookMap: book.id → { book: { ...fields, authors: [], status } }
+    // First time we see a book we create the entry; each subsequent row for the
+    // same book just pushes another author into the existing authors array.
     const bookMap = new Map<number, { book: any }>();
     for (const { book, author } of contributions) {
       if (!bookMap.has(book.id)) {
@@ -117,6 +157,9 @@ export async function fetchUserBooks(
       bookMap.get(book.id)!.book.authors.push(author);
     }
 
+    // ── Step 4: paginate ─────────────────────────────────────────────────────
+    // Pagination is done here in JS (not at the GraphQL level) because we need
+    // to group by book first — GraphQL returns one row per author.
     const allBooks = Array.from(bookMap.values());
     const paginatedBooks = allBooks.slice(offset, offset + limit);
 

@@ -1,76 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { fetchUserBooks } from "../lib/hardcover";
-import type { BookFilter } from "../lib/hardcover";
-import Pagination from "../components/Pagination.astro";
-
-const limit = Number(Astro.url.searchParams.get("limit") ?? 12);
-const offset = Number(Astro.url.searchParams.get("offset") ?? 0);
-const filter = (Astro.url.searchParams.get("filter") ?? "all") as BookFilter;
-const { books, total } = await fetchUserBooks(limit, offset, filter);
-
-const filters: { key: BookFilter; label: string }[] = [
-  { key: "all",          label: "All Books"    },
-  { key: "read",         label: "Read"         },
-  { key: "favorites",    label: "My Favorites" },
-];
 ---
 
-<Layout title="Libros">
-  <main>
-    <div aria-label="Heading wrapper" class="py-2 m-auto">
-      <h1 class="text-center text-4xl sm:text-3xl font-extrabold mb-4">My book pick</h1>
-    </div>
-
-    <nav class="flex gap-2 justify-center mb-6">
-      {filters.map(({ key, label }) => (
-        <a
-          href={`/?filter=${key}&limit=${limit}`}
-          class={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
-            filter === key
-              ? "bg-white text-slate-900"
-              : "text-slate-400 border border-slate-600 hover:text-white hover:border-slate-400"
-          }`}
-        >
-          {label}
-        </a>
-      ))}
-    </nav>
-
-    <section aria-label="Libros recomendados favoritos">
-      <div class="px-4 mt-6 mx-auto max-w-screen-xl">
-        <div class="columns-2 lg:columns-3 gap-4 sm:gap-2 ">
-          {
-            books.map((user_book: { book: any }) => {
-              const { book } = user_book;
-              const { slug, title, authors, image, description } = book;
-
-              return (
-                <article class="break-inside-avoid mb-4 rounded-sm p-2 max-w-64">
-                  <a href={`/book/${slug}`} class="mb-2 xl:mb-0 transition hover:scale-110">
-                    <img
-                      src={`${image?.url || "https://placehold.co/200x200.png"} `}
-                      alt={title}
-                      class="w-full max-w-60 m-auto rounded-sm"
-                    />
-                  </a>
-                  <div class="flex flex-col align-top py-2 px-1">
-                    <h2 class="text-lg font-bold leading-tight text-white">
-                      {title}
-                    </h2>
-                    <p class="mb-2 text-sm text-slate-400">{authors?.map((a: any) => a.name).join(", ")}</p>
-                    <p class="text-amber-100 text-wrap line-clamp-3 italic">{description}</p>
-                    <a href={`/book/${slug}`} aria-details="ver más">
-                      ver más...
-                    </a>
-                  </div>
-                </article>
-              );
-            })
-          }
-        </div>
-      </div>
-    </section>
-    <Pagination limit={limit} offset={offset} total={total} baseUrl="/" filter={filter} />
+<Layout title="Home">
+  <main class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+    <h1 class="text-5xl sm:text-4xl font-extrabold mb-4">Welcome! :^)</h1>
+    <p class="text-slate-400 text-lg max-w-md mb-8">
+      This is a personal collection of books I read and want to read.
+    </p>
+    <a
+      href="/books"
+      class="px-6 py-2.5 rounded-full bg-white text-slate-900 font-semibold text-sm hover:bg-slate-200 transition"
+    >
+      Browse Books
+    </a>
   </main>
 </Layout>
