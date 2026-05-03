@@ -58,11 +58,13 @@ export const BOOKS_WITH_AUTHORS_QUERY = `
 // ─── Filter types ─────────────────────────────────────────────────────────────
 //
 // BookFilter controls which subset of the user's books to show.
-// To add a new tab, add the key here and a WHERE_CLAUSES entry below.
-export type BookFilter = 'all' | 'read' | 'want-to-read' | 'favorites';
+// 'all'       — returns all user books (both read and want-to-read)
+// 'read'      — only books with a last_read_date
+// 'want-to-read' — only books without a last_read_date
+export type BookFilter = 'all' | 'read' | 'want-to-read';
 
 // Maps each filter to a Hasura-style GraphQL where clause.
-// Filters not listed here (e.g. 'all', 'favorites') get no where clause → return everything.
+// 'all' is not listed here — it returns everything from the user's books.
 const WHERE_CLAUSES: Partial<Record<BookFilter, object>> = {
   'read':         { last_read_date: { _is_null: false } }, // has a read date → read
   'want-to-read': { last_read_date: { _is_null: true  } }, // no read date → unread

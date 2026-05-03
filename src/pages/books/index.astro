@@ -10,9 +10,9 @@ const filter = (Astro.url.searchParams.get("filter") ?? "all") as BookFilter;
 const { books, total } = await fetchUserBooks(limit, offset, filter);
 
 const filters: { key: BookFilter; label: string }[] = [
-  { key: "all",       label: "All Books"    },
-  { key: "read",      label: "Read"         },
-  { key: "favorites", label: "My Favorites" },
+  { key: "all",          label: "All Books"      },
+  { key: "read",         label: "Read"           },
+  { key: "want-to-read", label: "Want to Read"   },
 ];
 ---
 
