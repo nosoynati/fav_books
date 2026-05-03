@@ -1,14 +1,15 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { ClientRouter } from "astro:transitions";
 import { fetchUserBooks } from "../../lib/hardcover";
 import type { BookFilter } from "../../lib/hardcover";
 import Pagination from "../../components/Pagination.astro";
 
-const limit = Number(Astro.url.searchParams.get("limit") ?? 12);
-const offset = Number(Astro.url.searchParams.get("offset") ?? 0);
+const LIMIT = 12;
+const page = Math.max(1, Number(Astro.url.searchParams.get("page") ?? 1));
+const offset = (page - 1) * LIMIT;
 const filter = (Astro.url.searchParams.get("filter") ?? "all") as BookFilter;
-const { books, total } = await fetchUserBooks(limit, offset, filter);
+// Server-side initial fetch for SEO and first paint
+const { books, total } = await fetchUserBooks(LIMIT, offset, filter);
 
 const filters: { key: BookFilter; label: string }[] = [
   { key: "all",          label: "All Books"      },
@@ -26,8 +27,8 @@ const filters: { key: BookFilter; label: string }[] = [
     <nav class="flex gap-2 justify-center mb-6">
       {filters.map(({ key, label }) => (
         <a
-          href={`/books?filter=${key}&limit=${limit}`}
-          data-astro-reload
+          href={`/books?filter=${key}`}
+          data-filter={key}
           class={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
             filter === key
               ? "bg-white text-slate-900"
@@ -41,7 +42,7 @@ const filters: { key: BookFilter; label: string }[] = [
 
     <section aria-label="Book list">
       <div class="px-4 mt-6 mx-auto max-w-screen-xl">
-        <div class="columns-2 lg:columns-3 gap-4 sm:gap-2">
+        <div id="book-list" class="columns-2 lg:columns-3 gap-4 sm:gap-2">
           {
             books.map((user_book: { book: any }) => {
               const { book } = user_book;
@@ -73,6 +74,9 @@ const filters: { key: BookFilter; label: string }[] = [
         </div>
       </div>
     </section>
-    <Pagination limit={limit} offset={offset} total={total} baseUrl="/books" filter={filter} client:load/>
+    <div id="pagination-wrapper">
+      <Pagination page={page} limit={LIMIT} total={total} baseUrl="/books" filter={filter} />
+    </div>
   </main>
+
 </Layout>
