@@ -6,15 +6,22 @@ import Ratings from "../../components/Ratings.astro";
 export const prerender = true;
 
 export async function getStaticPaths() {
-   const { books } = await fetchUserBooks(1000, 0);
+  const { books } = await fetchUserBooks(1000, 0, "all");
 
   return books?.map((entry: { book: any }) => ({
     params: { id: entry?.book.slug },
     props: { book: entry.book },
   }));
 }
+
 const { book } = Astro.props;
-const { id, slug, title, rating, editions, subtitle, image, description } = book;
+const { id, slug, title, rating, editions, subtitle, image, description, status } = book;
+
+const statusStyle: Record<string, string> = {
+  "read":        "bg-green-900/40 text-green-300",
+  "want to read": "bg-slate-700 text-slate-300",
+};
+const statusClass = statusStyle[status] ?? "bg-slate-700 text-slate-400";
 ---
 
 <Layout title={title}>
@@ -46,6 +53,11 @@ const { id, slug, title, rating, editions, subtitle, image, description } = book
           )
         }
       </p>
+      {status && (
+        <span class={`self-start text-xs px-2 py-0.5 rounded-full capitalize mb-2 ${statusClass}`}>
+          {status}
+        </span>
+      )}
       <h3>
         {subtitle && subtitle}
       </h3>

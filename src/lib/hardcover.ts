@@ -38,18 +38,20 @@ export const BOOKS_WITH_AUTHORS_QUERY = `
   }
 `;
 
-type ReadingStatus = 'read' | 'want-to-read';
+export type BookFilter = 'all' | 'read' | 'want-to-read' | 'favorites';
+
+const WHERE_CLAUSES: Partial<Record<BookFilter, object>> = {
+  'read':        { last_read_date: { _is_null: false } },
+  'want-to-read': { last_read_date: { _is_null: true } },
+};
 
 export async function fetchUserBooks(
   limit: number = 12,
   offset: number = 0,
-  status: ReadingStatus = 'read'
+  filter: BookFilter = 'all'
 ) {
   try {
-    const whereClause =
-      status === 'read'
-        ? { last_read_date: { _is_null: false } }
-        : { last_read_date: { _is_null: true } };
+    const where = WHERE_CLAUSES[filter];
 
     const idsResponse = await fetch("https://api.hardcover.app/v1/graphql", {
       method: "POST",
@@ -59,7 +61,7 @@ export async function fetchUserBooks(
       },
       body: JSON.stringify({
         query: GET_USER_BOOK_IDS_QUERY,
-        variables: { where: whereClause },
+        variables: where ? { where } : {},
       }),
     });
     const idsJson = await idsResponse.json();
@@ -68,10 +70,16 @@ export async function fetchUserBooks(
       throw new Error(`GraphQL error: ${idsJson.errors[0].message}`);
     }
 
-    const userBookIds: number[] =
-      idsJson.data?.me?.[0]?.user_books?.map((b: { book_id: number }) => b.book_id) ?? [];
+    const userBooksRaw: Array<{ book_id: number; last_read_date: string | null }> =
+      idsJson.data?.me?.[0]?.user_books ?? [];
 
-    if (!userBookIds.length) return { books: [], total: 0 };
+    if (!userBooksRaw.length) return { books: [], total: 0 };
+
+    const userBookIds = userBooksRaw.map((b) => b.book_id);
+    const statusByBookId = new Map<number, string>();
+    for (const ub of userBooksRaw) {
+      statusByBookId.set(ub.book_id, ub.last_read_date ? 'read' : 'want to read');
+    }
 
     const booksResponse = await fetch("https://api.hardcover.app/v1/graphql", {
       method: "POST",
@@ -95,11 +103,16 @@ export async function fetchUserBooks(
       book: any;
     }> = booksJson.data?.contributions ?? [];
 
-    // Group contributions by book, collecting all authors per book
     const bookMap = new Map<number, { book: any }>();
     for (const { book, author } of contributions) {
       if (!bookMap.has(book.id)) {
-        bookMap.set(book.id, { book: { ...book, authors: [] } });
+        bookMap.set(book.id, {
+          book: {
+            ...book,
+            authors: [],
+            status: statusByBookId.get(book.id) ?? 'unknown',
+          },
+        });
       }
       bookMap.get(book.id)!.book.authors.push(author);
     }

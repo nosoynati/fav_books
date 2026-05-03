@@ -1,27 +1,49 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { fetchUserBooks } from "../lib/hardcover";
+import type { BookFilter } from "../lib/hardcover";
 import Pagination from "../components/Pagination.astro";
 
 const limit = Number(Astro.url.searchParams.get("limit") ?? 12);
 const offset = Number(Astro.url.searchParams.get("offset") ?? 0);
-const { books, total } = await fetchUserBooks(limit, offset);
-// const paginated = books.slice(offset, offset + limit);
+const filter = (Astro.url.searchParams.get("filter") ?? "all") as BookFilter;
+const { books, total } = await fetchUserBooks(limit, offset, filter);
+
+const filters: { key: BookFilter; label: string }[] = [
+  { key: "all",          label: "All Books"    },
+  { key: "read",         label: "Read"         },
+  { key: "favorites",    label: "My Favorites" },
+];
 ---
 
 <Layout title="Libros">
   <main>
     <div aria-label="Heading wrapper" class="py-2 m-auto">
-      <h1 class="text-center text-4xl sm:text-3xl font-extrabold mb-4">Mis libros favoritos</h1>
+      <h1 class="text-center text-4xl sm:text-3xl font-extrabold mb-4">My book pick</h1>
     </div>
+
+    <nav class="flex gap-2 justify-center mb-6">
+      {filters.map(({ key, label }) => (
+        <a
+          href={`/?filter=${key}&limit=${limit}`}
+          class={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+            filter === key
+              ? "bg-white text-slate-900"
+              : "text-slate-400 border border-slate-600 hover:text-white hover:border-slate-400"
+          }`}
+        >
+          {label}
+        </a>
+      ))}
+    </nav>
 
     <section aria-label="Libros recomendados favoritos">
       <div class="px-4 mt-6 mx-auto max-w-screen-xl">
-        <div class="columns-3 sm:colums-2 gap-4 sm:gap-2">
+        <div class="columns-2 lg:columns-3 gap-4 sm:gap-2 ">
           {
-            books.map((user_book: { book: any }, index: number) => {
+            books.map((user_book: { book: any }) => {
               const { book } = user_book;
-              const { id, slug, title, authors, image, description } = book;
+              const { slug, title, authors, image, description } = book;
 
               return (
                 <article class="break-inside-avoid mb-4 rounded-sm p-2 max-w-64">
@@ -42,7 +64,6 @@ const { books, total } = await fetchUserBooks(limit, offset);
                       ver más...
                     </a>
                   </div>
-                  
                 </article>
               );
             })
@@ -50,6 +71,6 @@ const { books, total } = await fetchUserBooks(limit, offset);
         </div>
       </div>
     </section>
-    <Pagination limit={limit} offset={offset} total={total} baseUrl="/" />
+    <Pagination limit={limit} offset={offset} total={total} baseUrl="/" filter={filter} />
   </main>
 </Layout>

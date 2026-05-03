@@ -4,13 +4,15 @@ interface Props {
   offset: number;
   total: number;
   baseUrl?: string;
+  filter?: string;
 }
 
 const {
   limit,
   offset,
   total,
-  baseUrl = ""
+  baseUrl = "",
+  filter,
 } = Astro.props;
 
 if (limit <= 0) {
@@ -22,7 +24,9 @@ const totalPages = Math.ceil(total / limit);
 
 const createLink = (page: number) => {
   const newOffset = (page - 1) * limit;
-  return `${baseUrl}?limit=${limit}&offset=${newOffset}`;
+  const params = new URLSearchParams({ limit: String(limit), offset: String(newOffset) });
+  if (filter && filter !== "all") params.set("filter", filter);
+  return `${baseUrl}?${params}`;
 };
 ---
 
