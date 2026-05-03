@@ -1,11 +1,12 @@
 import { HARDCOVER_API_KEY } from "astro:env/server";
 
 export const GET_USER_BOOK_IDS_QUERY = `
-  query GetUserBookIds {
+  query GetUserBookIds($where: user_books_bool_exp) {
     me {
-      user_books {
+      user_books(where: $where) {
         book_id
         id
+        last_read_date
       }
     }
   }
@@ -37,15 +38,29 @@ export const BOOKS_WITH_AUTHORS_QUERY = `
   }
 `;
 
-export async function fetchUserBooks(limit: number = 12, offset: number = 0) {
+type ReadingStatus = 'read' | 'want-to-read';
+
+export async function fetchUserBooks(
+  limit: number = 12,
+  offset: number = 0,
+  status: ReadingStatus = 'read'
+) {
   try {
+    const whereClause =
+      status === 'read'
+        ? { last_read_date: { _is_null: false } }
+        : { last_read_date: { _is_null: true } };
+
     const idsResponse = await fetch("https://api.hardcover.app/v1/graphql", {
       method: "POST",
       headers: {
         "content-type": "application/json",
         authorization: HARDCOVER_API_KEY,
       },
-      body: JSON.stringify({ query: GET_USER_BOOK_IDS_QUERY }),
+      body: JSON.stringify({
+        query: GET_USER_BOOK_IDS_QUERY,
+        variables: { where: whereClause },
+      }),
     });
     const idsJson = await idsResponse.json();
 
@@ -53,9 +68,8 @@ export async function fetchUserBooks(limit: number = 12, offset: number = 0) {
       throw new Error(`GraphQL error: ${idsJson.errors[0].message}`);
     }
 
-    const userBookIds: number[] = idsJson.data?.me?.[0]?.user_books?.map(
-      (b: { book_id: number }) => b.book_id
-    ) ?? [];
+    const userBookIds: number[] =
+      idsJson.data?.me?.[0]?.user_books?.map((b: { book_id: number }) => b.book_id) ?? [];
 
     if (!userBookIds.length) return { books: [], total: 0 };
 
