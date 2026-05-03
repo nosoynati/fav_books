@@ -1,47 +1,22 @@
 ---
-// Props passed in from the parent page (e.g. books/index.astro).
-// - limit:   how many items per page
-// - offset:  how many items to skip (0 = first page)
-// - total:   total number of items across all pages
-// - baseUrl: the path to paginate, e.g. "/books"
-// - filter:  active filter tab (e.g. "read") — preserved in every link
 interface Props {
-  limit: number;
-  offset: number;
+  page: number;
   total: number;
+  limit: number;
   baseUrl?: string;
   filter?: string;
 }
 
-const {
-  limit,
-  offset,
-  total,
-  baseUrl = "",
-  filter,
-} = Astro.props;
+const { page: currentPage, total, limit, baseUrl = "", filter } = Astro.props;
 
-if (limit <= 0) {
-  throw new Error("limit must be > 0");
-}
-
-// Which page we're on right now (1-based).
-// e.g. offset=24, limit=12 → page 3
-const currentPage = Math.floor(offset / limit) + 1;
-
-// Total number of pages needed to show all items.
-// Math.ceil so a partial last page still counts as a page.
 const totalPages = Math.ceil(total / limit);
 
-// Builds the href for a given page number.
-// Converts page → offset and appends filter when active.
-// e.g. page=3, limit=12 → /books?limit=12&offset=24&filter=read
-const createLink = (page: number) => {
-  const newOffset = (page - 1) * limit;
-  const params = new URLSearchParams({ limit: String(limit), offset: String(newOffset) });
-  // "all" is the default — no need to add it to the URL
+const createLink = (p: number) => {
+  const params = new URLSearchParams();
+  if (p > 1) params.set("page", String(p));
   if (filter && filter !== "all") params.set("filter", filter);
-  return `${baseUrl}?${params}`;
+  const qs = params.toString();
+  return qs ? `${baseUrl}?${qs}` : baseUrl;
 };
 ---
 
@@ -53,7 +28,7 @@ const createLink = (page: number) => {
       {/* Prev — disabled (non-link) when already on the first page */}
       {currentPage > 1 ? (
         <li>
-          <a href={createLink(currentPage - 1)} data-astro-reload class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Prev</a>
+          <a href={createLink(currentPage - 1)} class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Prev</a>
         </li>
       ) : (
         <li class="px-3 py-1 rounded text-slate-600 cursor-not-allowed" aria-disabled="true">Prev</li>
@@ -66,7 +41,7 @@ const createLink = (page: number) => {
           <li>
             <a
               href={createLink(page)}
-              data-astro-reload
+            
               aria-current={page === currentPage ? "page" : undefined}
               class={`px-3 py-1 rounded transition ${page === currentPage ? "font-bold text-white bg-slate-600" : "text-slate-300 hover:text-white hover:bg-slate-700"}`}
             >
@@ -79,7 +54,7 @@ const createLink = (page: number) => {
       {/* Next — disabled when already on the last page */}
       {currentPage < totalPages ? (
         <li>
-          <a href={createLink(currentPage + 1)} data-astro-reload class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Next</a>
+          <a href={createLink(currentPage + 1)} class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Next</a>
         </li>
       ) : (
         <li class="px-3 py-1 rounded text-slate-600 cursor-not-allowed" aria-disabled="true">Next</li>

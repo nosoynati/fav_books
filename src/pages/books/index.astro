@@ -4,11 +4,12 @@ import { fetchUserBooks } from "../../lib/hardcover";
 import type { BookFilter } from "../../lib/hardcover";
 import Pagination from "../../components/Pagination.astro";
 
-const limit = Number(Astro.url.searchParams.get("limit") ?? 12);
-const offset = Number(Astro.url.searchParams.get("offset") ?? 0);
+const LIMIT = 12;
+const page = Math.max(1, Number(Astro.url.searchParams.get("page") ?? 1));
+const offset = (page - 1) * LIMIT;
 const filter = (Astro.url.searchParams.get("filter") ?? "all") as BookFilter;
 // Server-side initial fetch for SEO and first paint
-const { books, total } = await fetchUserBooks(limit, offset, filter);
+const { books, total } = await fetchUserBooks(LIMIT, offset, filter);
 
 const filters: { key: BookFilter; label: string }[] = [
   { key: "all",          label: "All Books"      },
@@ -26,7 +27,7 @@ const filters: { key: BookFilter; label: string }[] = [
     <nav class="flex gap-2 justify-center mb-6">
       {filters.map(({ key, label }) => (
         <a
-          href={`/books?filter=${key}&limit=${limit}`}
+          href={`/books?filter=${key}`}
           data-filter={key}
           class={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
             filter === key
@@ -74,7 +75,7 @@ const filters: { key: BookFilter; label: string }[] = [
       </div>
     </section>
     <div id="pagination-wrapper">
-      <Pagination limit={limit} offset={offset} total={total} baseUrl="/books" filter={filter} client:load/>
+      <Pagination page={page} limit={LIMIT} total={total} baseUrl="/books" filter={filter} />
     </div>
   </main>
 
