@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { ClientRouter } from "astro:transitions";
 import { fetchUserBooks } from "../../lib/hardcover";
 import type { BookFilter } from "../../lib/hardcover";
 import Pagination from "../../components/Pagination.astro";
@@ -61,7 +62,7 @@ const filters: { key: BookFilter; label: string }[] = [
                     </h2>
                     <p class="mb-2 text-sm text-slate-400">{authors?.map((a: any) => a.name).join(", ")}</p>
                     <p class="text-amber-100 text-wrap line-clamp-3 italic">{description}</p>
-                    <a href={`/book/${slug}`} aria-label="ver más">
+                    <a href={`/book/${slug}` }  aria-label="ver más">
                       ver más...
                     </a>
                   </div>
@@ -72,6 +73,6 @@ const filters: { key: BookFilter; label: string }[] = [
         </div>
       </div>
     </section>
-    <Pagination limit={limit} offset={offset} total={total} baseUrl="/books" filter={filter} />
+    <Pagination limit={limit} offset={offset} total={total} baseUrl="/books" filter={filter} client:load/>
   </main>
 </Layout>
