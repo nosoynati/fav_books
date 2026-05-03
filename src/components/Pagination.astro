@@ -47,8 +47,8 @@ const createLink = (page: number) => {
 
 {/* Only render if there is more than one page */}
 {totalPages > 1 && (
-  <nav aria-label="Pagination" class="flex justify-center mt-8">
-    <ul class="flex gap-2 list-none p-0 items-center">
+  <nav aria-label="Pagination" class="flex justify-center mt-12 mb-4">
+    <ul class="flex gap-2 list-none p-4 md:p-0 items-center">
 
       {/* Prev — disabled (non-link) when already on the first page */}
       {currentPage > 1 ? (

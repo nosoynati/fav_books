@@ -20,6 +20,7 @@ export const GET_USER_BOOK_IDS_QUERY = `
         book_id
         id
         last_read_date
+        read_count
       }
     }
   }
