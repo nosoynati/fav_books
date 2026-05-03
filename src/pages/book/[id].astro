@@ -6,9 +6,9 @@ import Ratings from "../../components/Ratings.astro";
 export const prerender = true;
 
 export async function getStaticPaths() {
-  const user_books = await fetchUserBooks();
+   const { books } = await fetchUserBooks(1000, 0);
 
-  return user_books?.map((entry: { book: { slug: any } }) => ({
+  return books?.map((entry: { book: any }) => ({
     params: { id: entry?.book.slug },
     props: { book: entry.book },
   }));

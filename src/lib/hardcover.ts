@@ -1,53 +1,101 @@
 import { HARDCOVER_API_KEY } from "astro:env/server";
 
-export const USER_BOOKS_QUERY = `
-  query UserBooks {
+export const GET_USER_BOOK_IDS_QUERY = `
+  query GetUserBookIds {
     me {
-      user_books(limit: 10) {
+      user_books {
         book_id
-        book {
+        id
+      }
+    }
+  }
+`;
+
+export const BOOKS_WITH_AUTHORS_QUERY = `
+  query BooksWithAuthors($ids: [Int!]!) {
+    contributions(where: {book: {id: {_in: $ids}}}) {
+      author {
+        id
+        name
+      }
+      book {
+        id
+        slug
+        title
+        subtitle
+        description
+        rating
+        ratings_count
+        image {
+          url
+        }
         editions {
           isbn_13
         }
-          title
-          description
-          image { 
-            id
-            url 
-          }
-            
-          rating
-          ratings_count
-          slug
-          id
-        }
       }
     }
   }
 `;
-export const USER_AUTHORS = `
-  query USER_AUTHORS {
-    authors {
-      name
-      contributions {
-        book {
-          book_mappings {
-            book_id
-          }
-        }
-      }
+
+export async function fetchUserBooks(limit: number = 12, offset: number = 0) {
+  try {
+    const idsResponse = await fetch("https://api.hardcover.app/v1/graphql", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: HARDCOVER_API_KEY,
+      },
+      body: JSON.stringify({ query: GET_USER_BOOK_IDS_QUERY }),
+    });
+    const idsJson = await idsResponse.json();
+
+    if (idsJson.errors) {
+      throw new Error(`GraphQL error: ${idsJson.errors[0].message}`);
     }
+
+    const userBookIds: number[] = idsJson.data?.me?.[0]?.user_books?.map(
+      (b: { book_id: number }) => b.book_id
+    ) ?? [];
+
+    if (!userBookIds.length) return { books: [], total: 0 };
+
+    const booksResponse = await fetch("https://api.hardcover.app/v1/graphql", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: HARDCOVER_API_KEY,
+      },
+      body: JSON.stringify({
+        query: BOOKS_WITH_AUTHORS_QUERY,
+        variables: { ids: userBookIds },
+      }),
+    });
+    const booksJson = await booksResponse.json();
+
+    if (booksJson.errors) {
+      throw new Error(`GraphQL error: ${booksJson.errors[0].message}`);
+    }
+
+    const contributions: Array<{
+      author: { id: number; name: string };
+      book: any;
+    }> = booksJson.data?.contributions ?? [];
+
+    // Group contributions by book, collecting all authors per book
+    const bookMap = new Map<number, { book: any }>();
+    for (const { book, author } of contributions) {
+      if (!bookMap.has(book.id)) {
+        bookMap.set(book.id, { book: { ...book, authors: [] } });
+      }
+      bookMap.get(book.id)!.book.authors.push(author);
+    }
+
+    const allBooks = Array.from(bookMap.values());
+    const paginatedBooks = allBooks.slice(offset, offset + limit);
+
+    return { books: paginatedBooks, total: allBooks.length };
+  } catch (error) {
+    console.error("Error fetching user books:", error);
+    return { books: [], total: 0 };
   }
-`;
-export async function fetchUserBooks() {
-  const response = await fetch("https://api.hardcover.app/v1/graphql", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: HARDCOVER_API_KEY,
-    },
-    body: JSON.stringify({ query: USER_BOOKS_QUERY }),
-  });
-  const { data } = await response.json();
-  return data.me[0]["user_books"];
 }

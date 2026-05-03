@@ -1,0 +1,66 @@
+---
+interface Props {
+  limit: number;
+  offset: number;
+  total: number;
+  baseUrl?: string;
+}
+
+const {
+  limit,
+  offset,
+  total,
+  baseUrl = ""
+} = Astro.props;
+
+if (limit <= 0) {
+  throw new Error("limit must be > 0");
+}
+
+const currentPage = Math.floor(offset / limit) + 1;
+const totalPages = Math.ceil(total / limit);
+
+const createLink = (page: number) => {
+  const newOffset = (page - 1) * limit;
+  return `${baseUrl}?limit=${limit}&offset=${newOffset}`;
+};
+---
+
+{totalPages > 1 && (
+  <nav aria-label="Pagination" class="flex justify-center mt-8">
+    <ul class="flex gap-2 list-none p-0 items-center">
+
+      {currentPage > 1 ? (
+        <li>
+          <a href={createLink(currentPage - 1)} class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Prev</a>
+        </li>
+      ) : (
+        <li class="px-3 py-1 rounded text-slate-600 cursor-not-allowed" aria-disabled="true">Prev</li>
+      )}
+
+      {Array.from({ length: totalPages }, (_, i) => {
+        const page = i + 1;
+        return (
+          <li>
+            <a
+              href={createLink(page)}
+              aria-current={page === currentPage ? "page" : undefined}
+              class={`px-3 py-1 rounded transition ${page === currentPage ? "font-bold text-white bg-slate-600" : "text-slate-300 hover:text-white hover:bg-slate-700"}`}
+            >
+              {page}
+            </a>
+          </li>
+        );
+      })}
+
+      {currentPage < totalPages ? (
+        <li>
+          <a href={createLink(currentPage + 1)} class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Next</a>
+        </li>
+      ) : (
+        <li class="px-3 py-1 rounded text-slate-600 cursor-not-allowed" aria-disabled="true">Next</li>
+      )}
+
+    </ul>
+  </nav>
+)}
