@@ -1,0 +1,69 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { fetchUserBooks } from "../../lib/hardcover";
+import Ratings from "../../components/Ratings.astro";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const { books } = await fetchUserBooks(1000, 0, "all");
+
+  return books?.map((entry: { book: any }) => ({
+    params: { id: entry?.book.slug },
+    props: { book: entry.book },
+  }));
+}
+
+const { book } = Astro.props;
+const { id, slug, title, rating, editions, subtitle, image, description, status } = book;
+
+const statusStyle: Record<string, string> = {
+  "read":        "bg-green-900/40 text-green-300",
+  "want to read": "bg-slate-700 text-slate-300",
+};
+const statusClass = statusStyle[status] ?? "bg-slate-700 text-slate-400";
+---
+
+<Layout title={title}>
+  <div class="flex flex-wrap gap-12">
+    <aside class="flex flex-col flex-nowrap items-center gap-4">
+      <img
+        transition:name={`img-${id}`}
+        src={`${image?.url || "https://placehold.co/200x200.png"} `}
+        alt={title}
+        class="rounded w-full h-auto max-w-[175px] min-w-[126px]"
+      />
+      <div class="ratings">
+        Rating:
+        {rating && rating.toFixed(1)}
+        {(<Ratings rating={rating} />)}
+      </div>
+    </aside>
+
+    <main class="flex flex-col max-w-md">
+      <h2 transition:name={title} class="mb-2 text-2xl font-bold leading-tight text-white">
+        {title}
+      </h2>
+      <p class="text-xs my-2 font-medium text-slate-200">
+        {
+          editions?.[0]?.isbn_13 && (
+            <>
+              ISBN: <span class="text-slate-400 font-thin">{editions[0].isbn_13}</span>
+            </>
+          )
+        }
+      </p>
+      {status && (
+        <span class={`self-start text-xs px-2 py-0.5 rounded-full capitalize mb-2 ${statusClass}`}>
+          {status}
+        </span>
+      )}
+      <h3>
+        {subtitle && subtitle}
+      </h3>
+      <div class="prose dark:prose-invert prose-sm">
+        <p>{description}</p>
+      </div>
+    </main>
+  </div>
+</Layout>

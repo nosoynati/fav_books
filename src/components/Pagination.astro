@@ -1,0 +1,89 @@
+---
+// Props passed in from the parent page (e.g. books/index.astro).
+// - limit:   how many items per page
+// - offset:  how many items to skip (0 = first page)
+// - total:   total number of items across all pages
+// - baseUrl: the path to paginate, e.g. "/books"
+// - filter:  active filter tab (e.g. "read") — preserved in every link
+interface Props {
+  limit: number;
+  offset: number;
+  total: number;
+  baseUrl?: string;
+  filter?: string;
+}
+
+const {
+  limit,
+  offset,
+  total,
+  baseUrl = "",
+  filter,
+} = Astro.props;
+
+if (limit <= 0) {
+  throw new Error("limit must be > 0");
+}
+
+// Which page we're on right now (1-based).
+// e.g. offset=24, limit=12 → page 3
+const currentPage = Math.floor(offset / limit) + 1;
+
+// Total number of pages needed to show all items.
+// Math.ceil so a partial last page still counts as a page.
+const totalPages = Math.ceil(total / limit);
+
+// Builds the href for a given page number.
+// Converts page → offset and appends filter when active.
+// e.g. page=3, limit=12 → /books?limit=12&offset=24&filter=read
+const createLink = (page: number) => {
+  const newOffset = (page - 1) * limit;
+  const params = new URLSearchParams({ limit: String(limit), offset: String(newOffset) });
+  // "all" is the default — no need to add it to the URL
+  if (filter && filter !== "all") params.set("filter", filter);
+  return `${baseUrl}?${params}`;
+};
+---
+
+{/* Only render if there is more than one page */}
+{totalPages > 1 && (
+  <nav aria-label="Pagination" class="flex justify-center mt-8">
+    <ul class="flex gap-2 list-none p-0 items-center">
+
+      {/* Prev — disabled (non-link) when already on the first page */}
+      {currentPage > 1 ? (
+        <li>
+          <a href={createLink(currentPage - 1)} class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Prev</a>
+        </li>
+      ) : (
+        <li class="px-3 py-1 rounded text-slate-600 cursor-not-allowed" aria-disabled="true">Prev</li>
+      )}
+
+      {/* Numbered page links — current page is bold + highlighted */}
+      {Array.from({ length: totalPages }, (_, i) => {
+        const page = i + 1;
+        return (
+          <li>
+            <a
+              href={createLink(page)}
+              aria-current={page === currentPage ? "page" : undefined}
+              class={`px-3 py-1 rounded transition ${page === currentPage ? "font-bold text-white bg-slate-600" : "text-slate-300 hover:text-white hover:bg-slate-700"}`}
+            >
+              {page}
+            </a>
+          </li>
+        );
+      })}
+
+      {/* Next — disabled when already on the last page */}
+      {currentPage < totalPages ? (
+        <li>
+          <a href={createLink(currentPage + 1)} class="px-3 py-1 rounded text-slate-300 hover:text-white hover:bg-slate-700 transition">Next</a>
+        </li>
+      ) : (
+        <li class="px-3 py-1 rounded text-slate-600 cursor-not-allowed" aria-disabled="true">Next</li>
+      )}
+
+    </ul>
+  </nav>
+)}

@@ -1,0 +1,1 @@
+Before making any edit, show me the full diff in a code block. Wait for my confirmation before proceeding.

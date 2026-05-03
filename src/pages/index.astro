@@ -1,43 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getCollection } from "astro:content";
-
-const books = await getCollection("books");
-
-export const prerender = true; 
 ---
 
-<Layout title="Libros">
-  <main>
-    <h1 class="text-center text-4xl lg:text-7xl font-extrabold mb-4">Mis libros favoritos</h1>
-
-    <section aria-label="Libros recomendados favoritos">
-      <div class="px-4 mt-6 mx-auto max-w-screen-xl">
-        <div class="grid gap-6 md:grid-cols-2">
-          {
-            books?.map((book) => {
-              const { id, data } = book;
-              const { title, author, img, description } = data;
-
-              return (
-                <article class="grid grid-cols-2 gap-4">
-                  <a href={`/libro/${id}`} class="mb-2 xl:mb-0 transition hover:scale-110">
-                    <img src={`/img/${img}`} alt={title} class="w-full max-w-72 rounded-md" />
-                  </a>
-                  <div class="flex flex-col align-top">
-                    <h2 class="mb-2 text-2xl font-bold leading-tight text-white">
-                    {title}: {author}
-                  </h2>
-                  <p class="text-amber-100 text-wrap line-clamp-3 italic">{description}</p>
-                  <a href={`/libro/${id}`} aria-details="ver más" >ver más...</a>
-                  </div>
-                  
-                </article>
-              );
-            })
-          }
-        </div>
-      </div>
-    </section>
+<Layout title="Home">
+  <main class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+    <h1 class="text-5xl sm:text-4xl font-extrabold mb-4">Welcome! :^)</h1>
+    <p class="text-slate-400 text-lg max-w-md mb-8">
+      This is a personal collection of books I read and want to read.
+    </p>
+    <a
+      href="/books"
+      class="px-6 py-2.5 rounded-full bg-white text-slate-900 font-semibold text-sm hover:bg-slate-200 transition"
+    >
+      Browse Books
+    </a>
   </main>
 </Layout>
