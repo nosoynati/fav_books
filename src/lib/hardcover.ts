@@ -19,7 +19,7 @@ export const GET_USER_BOOK_IDS_QUERY = `
       user_books(where: $where) {
         book_id
         id
-        last_read_date
+        status_id
         read_count
       }
     }
@@ -62,13 +62,14 @@ export const BOOKS_WITH_AUTHORS_QUERY = `
 // 'all'       — returns all user books (both read and want-to-read)
 // 'read'      — only books with a last_read_date
 // 'want-to-read' — only books without a last_read_date
-export type BookFilter = 'all' | 'read' | 'want-to-read';
+export type BookFilter = 'all' | 'read' | 'want-to-read' | 'currently-reading';
 
 // Maps each filter to a Hasura-style GraphQL where clause.
 // 'all' is not listed here — it returns everything from the user's books.
 const WHERE_CLAUSES: Partial<Record<BookFilter, object>> = {
-  'read':         { last_read_date: { _is_null: false } }, // has a read date → read
-  'want-to-read': { last_read_date: { _is_null: true  } }, // no read date → unread
+  'currently-reading': { status_id: { _eq: 2 } },
+  'read':              { status_id: { _eq: 3 } },
+  'want-to-read':      { status_id: { _eq: 1 } },
 };
 
 // ─── Main fetch function ──────────────────────────────────────────────────────
@@ -102,7 +103,7 @@ export async function fetchUserBooks(
     }
 
     // me[0] is the authenticated user (the API returns an array)
-    const userBooksRaw: Array<{ book_id: number; last_read_date: string | null }> =
+    const userBooksRaw: Array<{ book_id: number; status_id: number }> =
       idsJson.data?.me?.[0]?.user_books ?? [];
 
     if (!userBooksRaw.length) return { books: [], total: 0 };
@@ -114,7 +115,7 @@ export async function fetchUserBooks(
     // Used to attach a human-readable status to each book later.
     const statusByBookId = new Map<number, string>();
     for (const ub of userBooksRaw) {
-      statusByBookId.set(ub.book_id, ub.last_read_date ? 'read' : 'want to read');
+      statusByBookId.set(ub.book_id, ({ 1: 'want to read', 2: 'currently reading', 3: 'read' } as Record<number, string>)[ub.status_id] ?? 'other');
     }
 
     // ── Step 2: fetch books with authors from contributions ──────────────────

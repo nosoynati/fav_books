@@ -7,14 +7,15 @@ import Pagination from "../../components/Pagination.astro";
 const LIMIT = 12;
 const page = Math.max(1, Number(Astro.url.searchParams.get("page") ?? 1));
 const offset = (page - 1) * LIMIT;
-const filter = (Astro.url.searchParams.get("filter") ?? "all") as BookFilter;
+const filter = (Astro.url.searchParams.get("filter") ?? "currently-reading") as BookFilter;
 // Server-side initial fetch for SEO and first paint
 const { books, total } = await fetchUserBooks(LIMIT, offset, filter);
 
 const filters: { key: BookFilter; label: string }[] = [
-  { key: "all",          label: "All Books"      },
-  { key: "read",         label: "Read"           },
-  { key: "want-to-read", label: "Want to Read"   },
+  { key: "currently-reading", label: "Currently Reading" },
+  { key: "read",              label: "Read"              },
+  { key: "want-to-read",      label: "Want to Read"      },
+  { key: "all",               label: "All Books"         },
 ];
 ---
 
@@ -46,13 +47,13 @@ const filters: { key: BookFilter; label: string }[] = [
           {
             books.map((user_book: { book: any }) => {
               const { book } = user_book;
-              const { slug, title, authors, image, description } = book;
+              const { id, slug, title, authors, image, description } = book;
 
               return (
                 <article class="break-inside-avoid mb-4 rounded-sm p-2 max-w-64">
                   <a href={`/book/${slug}`} class="mb-2 xl:mb-0 transition hover:scale-110">
                     <img
-                      src={`${image?.url || "https://placehold.co/200x200.png"} `}
+                      src={image?.url ?? `https://assets.hardcover.app/static/covers/cover${(id % 8) + 1}.webp`}
                       alt={title}
                       class="w-full max-w-60 m-auto rounded-sm"
                     />
@@ -61,7 +62,7 @@ const filters: { key: BookFilter; label: string }[] = [
                     <h2 class="text-lg font-bold leading-tight text-white">
                       {title}
                     </h2>
-                    <p class="mb-2 text-sm text-slate-400">{authors?.map((a: any) => a.name).join(", ")}</p>
+                    <p class="mb-2 text-sm text-slate-400 text-wrap line-clamp-3">{authors?.map((a: any) => a.name).join(", ")}</p>
                     <p class="text-amber-100 text-wrap line-clamp-3 italic">{description}</p>
                     <a href={`/book/${slug}` }  aria-label="ver más">
                       ver más...
