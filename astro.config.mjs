@@ -30,7 +30,9 @@ export default defineConfig({
     }
   }],
   adapter: vercel({
-    isr: true,
+    isr:{
+      exclude: ["/books"]
+    },
     webAnalytics: {
       enabled: true
     }
