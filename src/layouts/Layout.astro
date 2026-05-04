@@ -10,7 +10,7 @@ import Loader from "../components/Loader.astro";
 const { title } = Astro.props;
 ---
 
-<html lang="es" transition:animate="fade">
+<html lang="es">
   <head>
     <Font cssVariable="--font-intel-one" preload/>
     <meta charset="utf-8" />
@@ -21,7 +21,7 @@ const { title } = Astro.props;
     <BaseHead title={title} />
     <ClientRouter />
   </head>
-  <body class="min-h-dvh">
+  <body class="min-h-dvh" transition:animate="fade">
     <Loader />
     <Navigation />
 
