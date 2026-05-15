@@ -173,3 +173,70 @@ export async function fetchUserBooks(
     return { books: [], total: 0 };
   }
 }
+
+export const GET_BOOK_BY_SLUG_QUERY = `
+  query GetBookBySlug($slug: String!) {
+    contributions(where: {book: {slug: {_eq: $slug}}}) {
+      author {
+        id
+        name
+      }
+      book {
+        id
+        slug
+        title
+        subtitle
+        description
+        rating
+        ratings_count
+        image {
+          url
+        }
+        editions {
+          isbn_13
+        }
+      }
+    }
+    me {
+      user_books(where: {book: {slug: {_eq: $slug}}}) {
+        status_id
+      }
+    }
+  }
+`;
+
+export async function fetchBookBySlug(slug: string) {
+  try {
+    const response = await fetch("https://api.hardcover.app/v1/graphql", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: HARDCOVER_API_KEY,
+      },
+      body: JSON.stringify({
+        query: GET_BOOK_BY_SLUG_QUERY,
+        variables: { slug },
+      }),
+    });
+    const json = await response.json();
+
+    if (json.errors) throw new Error(`GraphQL error: ${json.errors[0].message}`);
+
+    const contributions: Array<{ author: { id: number; name: string }; book: any }> =
+      json.data?.contributions ?? [];
+
+    if (!contributions.length) return null;
+
+    const statusId = json.data?.me?.[0]?.user_books?.[0]?.status_id;
+    const status = ({ 1: 'want to read', 2: 'currently reading', 3: 'read' } as Record<number, string>)[statusId];
+
+    return {
+      ...contributions[0].book,
+      authors: contributions.map((c) => c.author),
+      status,
+    };
+  } catch (error) {
+    console.error("Error fetching book by slug:", error);
+    return null;
+  }
+}

@@ -1,21 +1,14 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { fetchUserBooks } from "../../lib/hardcover";
+import { fetchBookBySlug } from "../../lib/hardcover";
 import Ratings from "../../components/Ratings.astro";
 
-export const prerender = true;
+const { id: slug } = Astro.params;
+const book = await fetchBookBySlug(slug!);
 
-export async function getStaticPaths() {
-  const { books } = await fetchUserBooks(1000, 0, "all");
+if (!book) return new Response(null, { status: 404 });
 
-  return books?.map((entry: { book: any }) => ({
-    params: { id: entry?.book.slug },
-    props: { book: entry.book },
-  }));
-}
-
-const { book } = Astro.props;
-const { id, slug, title, rating, editions, subtitle, image, description, status } = book;
+const { id, title, rating, editions, subtitle, image, description, status } = book;
 
 const statusStyle: Record<string, string> = {
   "read":        "bg-green-900/40 text-green-300",
@@ -41,7 +34,7 @@ const statusClass = statusStyle[status] ?? "bg-slate-700 text-slate-400";
     </aside>
 
     <main class="flex flex-col max-w-md">
-      <h2 transition:name={title} class="mb-2 text-2xl font-bold leading-tight text-white">
+      <h2 transition:name={`title-${slug}`} class="mb-2 text-2xl font-bold leading-tight text-white">
         {title}
       </h2>
       <p class="text-xs my-2 font-medium text-slate-200">
